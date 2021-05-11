@@ -92,9 +92,3 @@ if __name__ == '__main__':
     args = get_args()
     for number in range(args.start_id, args.end_id):
         parse_first_book(number)
-
-
-#1) вынести скачку изоображения и книг в найм майн
-#2) разделить функцию parse_first_book конкретно get_book_link
-#3) убрать индексы
-#4) починить скачку книг с англ языками
