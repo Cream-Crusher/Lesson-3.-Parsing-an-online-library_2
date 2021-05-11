@@ -1,5 +1,6 @@
 .env
 books\
 img
+img\
 books
 __pycache__
