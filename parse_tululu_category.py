@@ -27,15 +27,15 @@ def parse_first_book(number):
     url = 'https://tululu.org/l55/{}'.format(number)
     response = get_response(url)
     soup = BeautifulSoup(response.text, "html.parser")
-    book_card_numbers = soup.find_all('table', class_='d_book')
+    book_card_numbers = soup.select('table.d_book')
     for book_card_number in book_card_numbers:
-        book_id = book_card_number.find('a')['href']
+        book_id = book_card_number.select_one('a')['href']
         url = urljoin('https://tululu.org', book_id)
         response = get_response(url)
-        soup = BeautifulSoup(response.text, "html.parser")        
-        filename = soup.find('table', class_='tabs').find('td', class_='ow_px_td').find('h1').text
-        image_name = soup.find('table', class_='tabs').find('td', class_='ow_px_td').find('table').find('img')['src']
-        genre = soup.find('table', class_='tabs').find('span', class_='d_book').find('a').text
+        soup = BeautifulSoup(response.text, "html.parser")
+        filename = soup.select_one('table.tabs td.ow_px_td h1').text
+        image_name = soup.select_one('table.tabs td.ow_px_td table img')['src']
+        genre = soup.select_one('table.tabs span.d_book a').text
         book_page_information = {
             'filename': filename.split('::')[0],
             'author': filename.split('::')[1],
