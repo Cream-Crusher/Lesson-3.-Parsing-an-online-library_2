@@ -2,7 +2,6 @@ import urllib3
 import requests
 import argparse
 import os
-import codecs
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 from pathvalidate import sanitize_filename
