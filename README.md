@@ -33,8 +33,11 @@ Titles\author\comments of books and so on.
 ### Optional parameters argparse
 
 --skip_txt  = не скачивать книги
+
 --skip_imgs = не скачивать книги
+
 --folder_books = указать название папки для  загрузки книги.  default='books'
+
 --folder_img = указать название папки для  загрузки обложки.  default='img'
 
 example:
