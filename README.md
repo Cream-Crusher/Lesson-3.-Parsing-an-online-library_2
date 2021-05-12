@@ -30,6 +30,19 @@ Titles\author\comments of books and so on.
 Деловая литература
 ```
 
+### Optional parameters argparse
+
+--skip_txt  = не скачивать книги
+--skip_imgs = не скачивать книги
+--folder_books = указать название папки для  загрузки книги.  default='books'
+--folder_img = указать название папки для  загрузки обложки.  default='img'
+
+example:
+
+```
+$ python parsing.py 1 10 --skip_txt 1 --skip_imgs 1 --folder_books books --folder_imgs
+```
+
 # Project Goals
 
 The code is written for educational purposes. Training course for web-developers - [DEVMAN.org](https://devman.org).
