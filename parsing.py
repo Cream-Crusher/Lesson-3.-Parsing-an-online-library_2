@@ -22,41 +22,6 @@ def get_response(url):
     return response
 
 
-def parse_first_book(number):
-    book_page_information = {}
-    url = 'https://tululu.org/l55/{}'.format(number)
-    response = get_response(url)
-    soup = BeautifulSoup(response.text, "html.parser")
-    book_card_numbers = soup.select('table.d_book')
-    for book_card_number in book_card_numbers:
-        try:
-            book_id = book_card_number.select_one('a')['href']
-            url = urljoin('https://tululu.org', book_id)
-            response = get_response(url)
-            soup = BeautifulSoup(response.text, "html.parser")
-            filename = soup.select_one('table.tabs td.ow_px_td h1').text
-            image_name = soup.select_one('table.tabs td.ow_px_td table img')['src']
-            genre = soup.select_one('table.tabs span.d_book a').text
-            book_page_information = {
-                'filename': filename.split('::')[0],
-                'author': filename.split('::')[1],
-                'image_name': image_name,
-                'genres': [
-                genre
-                ]
-            }
-            response = get_book_link(book_id)
-            if args.skip_txt == None:
-                download_txt(response, book_page_information)
-
-            if args.skip_imgs == None:
-                download_image(book_page_information)
-
-        except requests.HTTPError:
-            logging.error('Такого id нет на сайте')
-            continue 
-
-
 def get_book_link(book_id):
     book_id = book_id.rsplit('b')[1]
     payload = {'id': '{}'.format(book_id)}
@@ -111,17 +76,67 @@ def get_args():
     parser.add_argument('--folder_img', default='img', help='указать название папки для  загрузки обложки')
     args = parser.parse_args()
     return args
-    
+
+
+def получить_карты_страницы(number):#1
+    book_page_information = {}
+    url = 'https://tululu.org/l55/{}'.format(number)
+    response = get_response(url)
+    soup = BeautifulSoup(response.text, "html.parser")
+    book_card_numbers = soup.select('table.d_book')    
+    return {
+        number: book_card_numbers
+    }
+
+
+def parse_first_book(all_book_cards, number):#изменить название функции
+
+    for book_card_number in all_book_cards[0][number]:
+        try:
+            book_id = book_card_number.select_one('a')['href']
+            url = urljoin('https://tululu.org', book_id)
+            response = get_response(url)
+            soup = BeautifulSoup(response.text, "html.parser")
+            filename = soup.select_one('table.tabs td.ow_px_td h1').text
+            image_name = soup.select_one('table.tabs td.ow_px_td table img')['src']
+            genre = soup.select_one('table.tabs span.d_book a').text
+            book_page_information = {
+                'filename': filename.split('::')[0],
+                'author': filename.split('::')[1],
+                'image_name': image_name,
+                'genres': [
+                genre
+                ]
+            }
+            response = get_book_link(book_id)
+            meeting_the_specified_conditions(response, book_page_information)
+
+        except requests.HTTPError:
+            logging.error('Такого id нет на сайте')
+            continue 
+
+
+def meeting_the_specified_conditions(response, book_page_information):
+    if args.skip_txt == None:
+        download_txt(response, book_page_information)
+
+    if args.skip_imgs == None:
+        download_image(book_page_information)
+
 
 if __name__ == '__main__':
     args = get_args()
     logging.basicConfig(level = logging.ERROR)
     urllib3.disable_warnings()
+    all_book_cards = []
 
     for number in range(args.start_id, args.end_id):
-        parse_first_book(number)
+        all_book_cards.append(получить_карты_страницы(number))
+        parse_first_book(all_book_cards, number)
 
 
+
+#код который получает список всех страниц раздела 2 код который получает на каждой странице все юрл на карточки книг 3 функция которая принимает юрл на карточки книг
 #1) вынести скачку изоображения и книг в найм майн 
 #2) разделить функцию parse_first_book конкретно get_book_link 
 #3) убрать индексы 
