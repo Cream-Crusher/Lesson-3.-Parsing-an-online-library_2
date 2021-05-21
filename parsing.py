@@ -31,7 +31,7 @@ def get_book_link(book_id):
     check_for_redirect(response)
     return response
    
-   
+
 def print_directory(folder):
     file_directory = os.path.realpath(os.curdir)
     print(file_directory)
@@ -43,7 +43,9 @@ def print_directory(folder):
 
 def download_txt(response, book_page_information):
     folder = args.folder_books
-    print_directory(folder)
+    if args.find_out_directory == 'yes':
+        print_directory(folder)
+
     catalog_books = os.path.join('{}', '{}.txt').format(
     sanitize_filename(folder), sanitize_filename(book_page_information['filename']))
     os.makedirs(folder, exist_ok=True)
@@ -54,7 +56,9 @@ def download_txt(response, book_page_information):
 
 def download_image(book_page_information):
     folder = args.folder_img
-    print_directory(folder)
+    if args.find_out_directory == 'yes':
+        print_directory(folder)
+
     filename = book_page_information['image_name']
     url = 'https://tululu.org/{}'.format(filename)
     response = get_response(url)
@@ -71,49 +75,39 @@ def get_args():
     parser.add_argument('start_id', help='от какой странице', type=int)
     parser.add_argument('end_id', help='до какой странице', type=int)
     parser.add_argument('--skip_txt', help='не скачивать книги', type=int)
-    parser.add_argument('--skip_imgs', help='не скачивать книги', type=int)
+    parser.add_argument('--skip_imgs', help='не скачивать обложку', type=int)
     parser.add_argument('--folder_books', default='books', help='указать название папки для  загрузки книги')
     parser.add_argument('--folder_img', default='img', help='указать название папки для  загрузки обложки')
+    parser.add_argument('--find_out_directory', help='show the directory? - yes')
     args = parser.parse_args()
     return args
 
 
-def получить_карты_страницы(number):#1
-    book_page_information = {}
+def get_book_card_numbers(number):
     url = 'https://tululu.org/l55/{}'.format(number)
     response = get_response(url)
     soup = BeautifulSoup(response.text, "html.parser")
-    book_card_numbers = soup.select('table.d_book')    
-    return {
-        number: book_card_numbers
-    }
+    book_card_numbers = soup.select('table.d_book')   
+    return book_card_numbers
 
 
-def parse_first_book(all_book_cards, number):#изменить название функции
-
-    for book_card_number in all_book_cards[0][number]:
-        try:
-            book_id = book_card_number.select_one('a')['href']
-            url = urljoin('https://tululu.org', book_id)
-            response = get_response(url)
-            soup = BeautifulSoup(response.text, "html.parser")
-            filename = soup.select_one('table.tabs td.ow_px_td h1').text
-            image_name = soup.select_one('table.tabs td.ow_px_td table img')['src']
-            genre = soup.select_one('table.tabs span.d_book a').text
-            book_page_information = {
-                'filename': filename.split('::')[0],
-                'author': filename.split('::')[1],
-                'image_name': image_name,
-                'genres': [
-                genre
-                ]
-            }
-            response = get_book_link(book_id)
-            meeting_the_specified_conditions(response, book_page_information)
-
-        except requests.HTTPError:
-            logging.error('Такого id нет на сайте')
-            continue 
+def parse_book(books_urls, books_id):
+    for url, book_id in zip(books_urls[0], books_id):
+        response = get_response(url)
+        soup = BeautifulSoup(response.text, "html.parser")
+        filename = soup.select_one('table.tabs td.ow_px_td h1').text
+        image_name = soup.select_one('table.tabs td.ow_px_td table img')['src']
+        genre = soup.select_one('table.tabs span.d_book a').text
+        book_page_information = {
+            'filename': filename.split('::')[0],
+            'author': filename.split('::')[1],
+            'image_name': image_name,
+            'genres': [
+            genre
+            ]
+        }
+        response = get_book_link(book_id)
+        meeting_the_specified_conditions(response, book_page_information)
 
 
 def meeting_the_specified_conditions(response, book_page_information):
@@ -124,21 +118,32 @@ def meeting_the_specified_conditions(response, book_page_information):
         download_image(book_page_information)
 
 
+def get_books_urls(book_card_numbers):
+    urls = []
+    books_id = []
+    
+    for book_card_number in book_card_numbers:
+        book_id = book_card_number.select_one('a')['href']
+        url = urljoin('https://tululu.org', book_id)
+        urls.append(url)
+        books_id.append(book_id)
+    return urls, books_id
+
+
 if __name__ == '__main__':
     args = get_args()
     logging.basicConfig(level = logging.ERROR)
     urllib3.disable_warnings()
-    all_book_cards = []
+    books_urls = []
+    books_id = []
 
     for number in range(args.start_id, args.end_id):
-        all_book_cards.append(получить_карты_страницы(number))
-        parse_first_book(all_book_cards, number)
+        book_card_numbers = get_book_card_numbers(number)
+        urls, books_id = get_books_urls(book_card_numbers)
+        books_urls.append(urls)
+        books_id.append(books_id)
+    try:    
+        parse_book(books_urls, books_id)
 
-
-
-#код который получает список всех страниц раздела 2 код который получает на каждой странице все юрл на карточки книг 3 функция которая принимает юрл на карточки книг
-#1) вынести скачку изоображения и книг в найм майн 
-#2) разделить функцию parse_first_book конкретно get_book_link 
-#3) убрать индексы 
-#4) починить скачку книг с англ языками
-#parsing.py 1 2 --skip_imgs 1 --skip_txt 1
+    except requests.HTTPError:
+        logging.error('Такого id нет на сайте')
