@@ -40,10 +40,12 @@ Titles\author\comments of books and so on.
 
 --folder_img = указать название папки для  загрузки обложки.  default='img'
 
+--find_out_directory = показать директорию загрузки книги\обложки (yes)
+
 example:
 
 ```
-$ python parsing.py 1 10 --skip_txt 1 --skip_imgs 1 --folder_books books --folder_imgs
+$ python parsing.py 1 10 --skip_txt 1 --skip_imgs 1 --folder_books books --folder_imgs --find_out_directory yes
 ```
 
 # Project Goals
