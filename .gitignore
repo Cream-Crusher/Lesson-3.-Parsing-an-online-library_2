@@ -3,4 +3,5 @@ books\
 img
 img\
 books
+book_page_information.json
 __pycache__

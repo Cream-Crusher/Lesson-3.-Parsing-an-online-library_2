@@ -3,6 +3,7 @@ import requests
 import argparse
 import os
 import logging
+import json
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 from pathvalidate import sanitize_filename
@@ -26,25 +27,15 @@ def get_book_link(book_id):
     book_id = book_id.rsplit('b')[1]
     payload = {'id': '{}'.format(book_id)}
     response = requests.get('https://tululu.org/txt.php', params=payload, verify=False)
-    url = response.url
-    response = get_response(url)
+    response = get_response(response.url)
     check_for_redirect(response)
     return response
-   
-
-def print_directory(folder):
-    file_directory = os.path.realpath(os.curdir)
-    print(file_directory)
-    try:
-        print(os.path.join('{}', '{}').format(file_directory, folder))
-    except:
-        None
 
 
 def download_txt(response, book_page_information):
     folder = args.folder_books
-    if args.find_out_directory == 'yes':
-        print_directory(folder)
+    if args.find_out_directory:
+        logging.info(os.path.join('{}', '{}').format(os.path.realpath(os.curdir), folder))
 
     catalog_books = os.path.join('{}', '{}.txt').format(
     sanitize_filename(folder), sanitize_filename(book_page_information['filename']))
@@ -52,12 +43,12 @@ def download_txt(response, book_page_information):
     
     with open(catalog_books, 'w', encoding='utf-8') as file:
         file.write(response.text)
-        
+
 
 def download_image(book_page_information):
     folder = args.folder_img
-    if args.find_out_directory == 'yes':
-        print_directory(folder)
+    if args.find_out_directory:
+        logging.info(os.path.join('{}', '{}').format(os.path.realpath(os.curdir), folder))
 
     filename = book_page_information['image_name']
     url = 'https://tululu.org/{}'.format(filename)
@@ -72,27 +63,28 @@ def download_image(book_page_information):
 
 def get_args():
     parser = argparse.ArgumentParser(description='Получение ссылок на книги')
-    parser.add_argument('start_id', help='от какой странице', type=int)
-    parser.add_argument('end_id', help='до какой странице', type=int)
-    parser.add_argument('--skip_txt', help='не скачивать книги', type=int)
-    parser.add_argument('--skip_imgs', help='не скачивать обложку', type=int)
+    parser.add_argument('start_page', default='1', help='от какой странице', type=int)
+    parser.add_argument('end_page', default='2', help='до какой странице', type=int)
+    parser.add_argument('--skip_txt', default=False, action='store_true', help='не скачивать книги')
+    parser.add_argument('--skip_imgs', default=False, action='store_true', help='не скачивать обложку')
     parser.add_argument('--folder_books', default='books', help='указать название папки для  загрузки книги')
     parser.add_argument('--folder_img', default='img', help='указать название папки для  загрузки обложки')
-    parser.add_argument('--find_out_directory', help='show the directory? - yes')
+    parser.add_argument('--find_out_directory', default=False, action='store_true', help='show the directory?')
+    parser.add_argument('--json_path', default=os.path.abspath(os.curdir), help='можно указать куда сохранить фаил json')
     args = parser.parse_args()
     return args
 
 
-def get_book_card_numbers(number):
-    url = 'https://tululu.org/l55/{}'.format(number)
+def get_book_ids(id):
+    url = 'https://tululu.org/l55/{}'.format(id)
     response = get_response(url)
     soup = BeautifulSoup(response.text, "html.parser")
     book_card_numbers = soup.select('table.d_book')   
     return book_card_numbers
 
 
-def parse_book(books_urls, books_id):
-    for url, book_id in zip(books_urls[0], books_id):
+def parse_book(urls_and_books_ids):
+    for url, book_id in zip(urls_and_books_ids['urls'], urls_and_books_ids['books_ids']):
         response = get_response(url)
         soup = BeautifulSoup(response.text, "html.parser")
         filename = soup.select_one('table.tabs td.ow_px_td h1').text
@@ -102,48 +94,47 @@ def parse_book(books_urls, books_id):
             'filename': filename.split('::')[0],
             'author': filename.split('::')[1],
             'image_name': image_name,
-            'genres': [
-            genre
-            ]
+            'genres': [genre]
         }
+        json_path = os.path.join('{}'.format(args.json_path), 'book_page_information.json')
+        with open(json_path, "w") as my_file:
+            json.dump(book_page_information,my_file)
+
         response = get_book_link(book_id)
-        meeting_the_specified_conditions(response, book_page_information)
+
+        if not args.skip_txt:
+            download_txt(response, book_page_information)
+
+        if not args.skip_imgs:
+            download_image(book_page_information)
 
 
-def meeting_the_specified_conditions(response, book_page_information):
-    if args.skip_txt == None:
-        download_txt(response, book_page_information)
-
-    if args.skip_imgs == None:
-        download_image(book_page_information)
-
-
-def get_books_urls(book_card_numbers):
+def get_books_urls_and_ids(book_card_numbers):
     urls = []
-    books_id = []
+    books_ids = []
+    
     
     for book_card_number in book_card_numbers:
         book_id = book_card_number.select_one('a')['href']
         url = urljoin('https://tululu.org', book_id)
         urls.append(url)
-        books_id.append(book_id)
-    return urls, books_id
+        books_ids.append(book_id)
+    return {
+    'urls': urls,
+    'books_ids': books_ids
+    }
 
 
 if __name__ == '__main__':
     args = get_args()
-    logging.basicConfig(level = logging.ERROR)
+    logging.basicConfig(level = logging.INFO)
     urllib3.disable_warnings()
-    books_urls = []
-    books_id = []
 
-    for number in range(args.start_id, args.end_id):
-        book_card_numbers = get_book_card_numbers(number)
-        urls, books_id = get_books_urls(book_card_numbers)
-        books_urls.append(urls)
-        books_id.append(books_id)
-    try:    
-        parse_book(books_urls, books_id)
+    for id in range(args.start_page, args.end_page):
+        book_card_numbers = get_book_ids(id)
+        urls_and_books_ids = get_books_urls_and_ids(book_card_numbers)
+    try:
+        parse_book(urls_and_books_ids)
 
     except requests.HTTPError:
         logging.error('Такого id нет на сайте')
