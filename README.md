@@ -17,7 +17,7 @@ pip install -r requirements.txt
 example:
 
 ```
-$ python parsing.py 1 10
+$ python parsing.py 1
 ```
 
 ### You will see
@@ -32,6 +32,8 @@ Titles\author\comments of books and so on.
 
 ### Optional parameters argparse
 
+--end_page = конечная страница для скачивания
+
 --skip_txt  = не скачивать книги
 
 --skip_imgs = не скачивать книги
@@ -45,7 +47,16 @@ Titles\author\comments of books and so on.
 example:
 
 ```
-$ python parsing.py 1 10 --skip_txt 1 --skip_imgs 1 --folder_books books --folder_imgs --find_out_directory yes
+$ python parsing.py 1 --end_page 3 --skip_txt 1 --skip_imgs 1 --folder_books books --folder_imgs --find_out_directory yes
+```
+
+###Pay attention
+
+Without '--end_page', the download will only be on the specified page
+
+example:
+```
+$ python parsing.py 1
 ```
 
 # Project Goals

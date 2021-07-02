@@ -64,7 +64,7 @@ def download_image(book_page_information):
 def get_args():
     parser = argparse.ArgumentParser(description='Получение ссылок на книги')
     parser.add_argument('start_page', default='1', help='от какой страницы', type=int)
-    parser.add_argument('end_page', default='2', help='до какой страницы', type=int)
+    parser.add_argument('--end_page', default='{}'.format(parser.parse_args().start_page+1), help='до какой страницы', type=int)
     parser.add_argument('--skip_txt', default=False, action='store_true', help='не скачивать книги')
     parser.add_argument('--skip_imgs', default=False, action='store_true', help='не скачивать обложку')
     parser.add_argument('--folder_books', default='books', help='указать название папки для  загрузки книги')
