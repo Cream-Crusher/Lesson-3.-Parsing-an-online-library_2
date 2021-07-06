@@ -26,8 +26,7 @@ def get_response(url):
 def get_book_link(book_id):
     book_id = book_id.rsplit('b')[1]
     payload = {'id': '{}'.format(book_id)}
-    response = requests.get('https://tululu.org/txt.php', params=payload, verify=False)
-    response = get_response(response.url)
+    response = get_response(requests.get('https://tululu.org/txt.php', params=payload, verify=False).url)
     check_for_redirect(response)
     return response
 
@@ -85,6 +84,9 @@ def get_book_ids(id):
 
 
 def parse_book(urls_and_books_ids):
+    json_path = os.path.join(args.json_path, 'book_page_information.json')
+    json_information = []
+
     for url, book_id in zip(urls_and_books_ids['urls'], urls_and_books_ids['books_ids']):
         response = get_response(url)
         soup = BeautifulSoup(response.text, "html.parser")
@@ -97,17 +99,17 @@ def parse_book(urls_and_books_ids):
             'image_name': image_name,
             'genres': [genre]
         }
-        json_path = os.path.join(args.json_path, 'book_page_information.json')
-        with open(json_path, "w") as my_file:
-            json.dump(book_page_information,my_file)
-
-        response = get_book_link(book_id)
+        json_information.append(book_page_information)
+        response = get_book_link(book_id)  
 
         if not args.skip_txt:
             download_txt(response, book_page_information)
 
         if not args.skip_imgs:
             download_image(book_page_information)
+
+    with open(json_path, "w") as my_file:
+        json.dump(json_information, my_file)      
 
 
 def get_books_urls_and_ids(book_card_numbers):
