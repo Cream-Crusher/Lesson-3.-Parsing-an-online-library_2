@@ -36,7 +36,7 @@ Titles\author\comments of books and so on.
 
 --skip_txt  = не скачивать книги
 
---skip_imgs = не скачивать книги
+--skip_imgs = не скачивать обложку книги
 
 --folder_books = указать название папки для  загрузки книги.  default='books'
 

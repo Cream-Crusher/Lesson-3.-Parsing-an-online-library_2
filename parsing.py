@@ -64,7 +64,8 @@ def download_image(book_page_information):
 def get_args():
     parser = argparse.ArgumentParser(description='Получение ссылок на книги')
     parser.add_argument('start_page', default='1', help='от какой страницы', type=int)
-    parser.add_argument('--end_page', default='{}'.format(parser.parse_args().start_page+1), help='до какой страницы', type=int)
+    args, unknown = parser.parse_known_args()
+    parser.add_argument('--end_page', default=args.start_page+1, help='до какой страницы', type=int)
     parser.add_argument('--skip_txt', default=False, action='store_true', help='не скачивать книги')
     parser.add_argument('--skip_imgs', default=False, action='store_true', help='не скачивать обложку')
     parser.add_argument('--folder_books', default='books', help='указать название папки для  загрузки книги')
@@ -131,7 +132,7 @@ if __name__ == '__main__':
 
     for page_number in range(args.start_page, args.end_page):
         book_card_numbers = get_book_ids(page_number)
-        urls_and_books_ids = get_books_urls_and_ids(book_card_numbers)
+        urls_and_books_ids = get_books_urls_and_ids(book_card_numbers) 
     try:
         parse_book(urls_and_books_ids)
 
