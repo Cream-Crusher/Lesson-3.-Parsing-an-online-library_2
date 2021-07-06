@@ -96,7 +96,7 @@ def parse_book(urls_and_books_ids):
             'image_name': image_name,
             'genres': [genre]
         }
-        json_path = os.path.join('{}'.format(args.json_path), 'book_page_information.json')
+        json_path = os.path.join(args.json_path, 'book_page_information.json')
         with open(json_path, "w") as my_file:
             json.dump(book_page_information,my_file)
 
@@ -119,8 +119,8 @@ def get_books_urls_and_ids(book_card_numbers):
         urls.append(url)
         books_ids.append(book_id)
     return {
-    'urls': urls,
-    'books_ids': books_ids
+        'urls': urls,
+        'books_ids': books_ids
     }
 
 
@@ -129,11 +129,11 @@ if __name__ == '__main__':
     logging.basicConfig(level = logging.INFO)
     urllib3.disable_warnings()
 
-    for id in range(args.start_page, args.end_page):
-        book_card_numbers = get_book_ids(id)
+    for page_number in range(args.start_page, args.end_page):
+        book_card_numbers = get_book_ids(page_number)
         urls_and_books_ids = get_books_urls_and_ids(book_card_numbers)
     try:
         parse_book(urls_and_books_ids)
 
     except requests.HTTPError:
-        logging.error('Такого id нет на сайте')
+        logging.error('Такого страницы нет на сайте')
