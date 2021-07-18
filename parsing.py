@@ -79,8 +79,9 @@ def get_book_ids(id):
     url = 'https://tululu.org/l55/{}'.format(id)
     response = get_response(url)
     soup = BeautifulSoup(response.text, "html.parser")
-    book_card_numbers = soup.select('table.d_book')   
-    return book_card_numbers
+    book_card_numbers = soup.select('table.d_book')
+    number_pages = soup.select('table.tabs p.center a.npage')[-1].text
+    return book_card_numbers, number_pages
 
 
 def parse_books(urls_and_books_ids):
@@ -89,7 +90,6 @@ def parse_books(urls_and_books_ids):
 
     for url, book_id in zip(urls_and_books_ids['urls'], urls_and_books_ids['books_ids']):
         response = get_response(url)
-        print(url)
         soup = BeautifulSoup(response.text, "html.parser")
         filename = soup.select_one('table.tabs td.ow_px_td h1').text
         image_name = soup.select_one('table.tabs td.ow_px_td table img')['src']
@@ -132,9 +132,10 @@ if __name__ == '__main__':
     args = get_args()
     logging.basicConfig(level = logging.INFO)
     urllib3.disable_warnings()
+    number_pages = args.end_page
 
-    for page_number in range(args.start_page, args.end_page):
-        book_card_numbers = get_book_ids(page_number)
+    for page_number in range(args.start_page, number_pages):
+        book_card_numbers, number_pages = get_book_ids(page_number)
         urls_and_books_ids = get_books_urls_and_ids(book_card_numbers) 
     try:
         parse_books(urls_and_books_ids)
