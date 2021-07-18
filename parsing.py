@@ -25,7 +25,7 @@ def get_response(url):
 
 def get_book_link(book_id):
     book_id = book_id.rsplit('b')[1]
-    payload = {'id': '{}'.format(book_id)}
+    payload = {'id': book_id}
     response = get_response(requests.get('https://tululu.org/txt.php', params=payload, verify=False).url)
     check_for_redirect(response)
     return response
@@ -83,7 +83,7 @@ def get_book_ids(id):
     return book_card_numbers
 
 
-def parse_book(urls_and_books_ids):
+def parse_books(urls_and_books_ids):
     json_path = os.path.join(args.json_path, 'book_page_information.json')
     json_information = []
 
