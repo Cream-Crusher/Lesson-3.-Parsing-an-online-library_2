@@ -89,6 +89,7 @@ def parse_books(urls_and_books_ids):
 
     for url, book_id in zip(urls_and_books_ids['urls'], urls_and_books_ids['books_ids']):
         response = get_response(url)
+        print(url)
         soup = BeautifulSoup(response.text, "html.parser")
         filename = soup.select_one('table.tabs td.ow_px_td h1').text
         image_name = soup.select_one('table.tabs td.ow_px_td table img')['src']
@@ -136,7 +137,7 @@ if __name__ == '__main__':
         book_card_numbers = get_book_ids(page_number)
         urls_and_books_ids = get_books_urls_and_ids(book_card_numbers) 
     try:
-        parse_book(urls_and_books_ids)
+        parse_books(urls_and_books_ids)
 
     except requests.HTTPError:
         logging.error('Такого страницы нет на сайте')
