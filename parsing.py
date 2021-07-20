@@ -148,8 +148,8 @@ if __name__ == '__main__':
     for page_number in range(start_page, end_page):
         book_card_numbers = get_book_ids(page_number)
         urls_and_books_ids = get_books_urls_and_ids(book_card_numbers) 
-    try:
-        parse_books(urls_and_books_ids)
+        try:
+            parse_books(urls_and_books_ids)
 
-    except requests.HTTPError:
-        logging.error('Такого страницы нет на сайте')
+        except requests.HTTPError:
+            logging.error('Такого страницы нет на сайте')
