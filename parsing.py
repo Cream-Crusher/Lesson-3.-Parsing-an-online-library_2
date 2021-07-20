@@ -134,7 +134,7 @@ def get_number_of_pages(end_page, start_page):
         max_page = soup.select('table.tabs p.center a.npage')[-1].text
         number_pages = max_page
     else:
-        number_pages = start_page+1
+        number_pages = end_page
     return int (number_pages)
 
 
@@ -145,7 +145,6 @@ if __name__ == '__main__':
     start_page = args.start_page
     end_page = args.end_page
     end_page = get_number_of_pages(end_page, start_page)
-
     for page_number in range(start_page, end_page):
         book_card_numbers = get_book_ids(page_number)
         urls_and_books_ids = get_books_urls_and_ids(book_card_numbers) 
