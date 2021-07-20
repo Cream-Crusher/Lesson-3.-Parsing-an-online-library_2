@@ -63,8 +63,7 @@ def download_image(book_page_information):
 def get_args():
     parser = argparse.ArgumentParser(description='Получение ссылок на книги')
     parser.add_argument('start_page', default='1', help='от какой страницы', type=int)
-    args, unknown = parser.parse_known_args()
-    parser.add_argument('--end_page', default=args.start_page+1, help='до какой страницы', type=int)
+    parser.add_argument('--end_page', default=False, help='до какой страницы', type=int)
     parser.add_argument('--skip_txt', default=False, action='store_true', help='не скачивать книги')
     parser.add_argument('--skip_imgs', default=False, action='store_true', help='не скачивать обложку')
     parser.add_argument('--folder_books', default='books', help='указать название папки для  загрузки книги')
@@ -80,8 +79,7 @@ def get_book_ids(id):
     response = get_response(url)
     soup = BeautifulSoup(response.text, "html.parser")
     book_card_numbers = soup.select('table.d_book')
-    number_pages = soup.select('table.tabs p.center a.npage')[-1].text
-    return book_card_numbers, number_pages
+    return book_card_numbers
 
 
 def parse_books(urls_and_books_ids):
@@ -128,14 +126,28 @@ def get_books_urls_and_ids(book_card_numbers):
     }
 
 
+def get_number_of_pages(end_page, start_page):
+    if end_page == False:
+        url = 'https://tululu.org/l55/1'
+        response = get_response(url)
+        soup = BeautifulSoup(response.text, "html.parser")
+        max_page = soup.select('table.tabs p.center a.npage')[-1].text
+        number_pages = max_page
+    else:
+        number_pages = start_page+1
+    return int (number_pages)
+
+
 if __name__ == '__main__':
     args = get_args()
     logging.basicConfig(level = logging.INFO)
     urllib3.disable_warnings()
-    number_pages = args.end_page
+    start_page = args.start_page
+    end_page = args.end_page
+    end_page = get_number_of_pages(end_page, start_page)
 
-    for page_number in range(args.start_page, number_pages):
-        book_card_numbers, number_pages = get_book_ids(page_number)
+    for page_number in range(start_page, end_page):
+        book_card_numbers = get_book_ids(page_number)
         urls_and_books_ids = get_books_urls_and_ids(book_card_numbers) 
     try:
         parse_books(urls_and_books_ids)
