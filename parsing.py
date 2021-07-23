@@ -26,7 +26,7 @@ def get_response(url):
 def get_book_link(book_id):
     book_id = book_id.rsplit('b')[1]
     payload = {'id': book_id}
-    response = get_response(requests.get('https://tululu.org/txt.php', params=payload, verify=False).url)
+    response = requests.get('https://tululu.org/txt.php', params=payload, verify=False)
     check_for_redirect(response)
     return response
 
@@ -60,10 +60,10 @@ def download_image(book_page_information):
         file.write(response.content)
 
 
-def get_args():
+def get_args(number_pages):
     parser = argparse.ArgumentParser(description='Получение ссылок на книги')
     parser.add_argument('start_page', default='1', help='от какой страницы', type=int)
-    parser.add_argument('--end_page', default=False, help='до какой страницы', type=int)
+    parser.add_argument('--end_page', default=number_pages, help='до какой страницы', type=int)
     parser.add_argument('--skip_txt', default=False, action='store_true', help='не скачивать книги')
     parser.add_argument('--skip_imgs', default=False, action='store_true', help='не скачивать обложку')
     parser.add_argument('--folder_books', default='books', help='указать название папки для  загрузки книги')
@@ -126,25 +126,21 @@ def get_books_urls_and_ids(book_card_numbers):
     }
 
 
-def get_number_of_pages(end_page, start_page):
-    if end_page == False:
-        url = 'https://tululu.org/l55/1'
-        response = get_response(url)
-        soup = BeautifulSoup(response.text, "html.parser")
-        max_page = soup.select('table.tabs p.center a.npage')[-1].text
-        number_pages = max_page
-    else:
-        number_pages = end_page
+def get_number_of_pages():
+    url = 'https://tululu.org/l55/1'
+    response = get_response(url)
+    soup = BeautifulSoup(response.text, "html.parser")
+    number_pages = soup.select('table.tabs p.center a.npage')[-1].text
     return int (number_pages)
 
 
 if __name__ == '__main__':
-    args = get_args()
+    number_pages = get_number_of_pages()
+    args = get_args(number_pages)
     logging.basicConfig(level = logging.INFO)
     urllib3.disable_warnings()
     start_page = args.start_page
     end_page = args.end_page
-    end_page = get_number_of_pages(end_page, start_page)
     for page_number in range(start_page, end_page):
         book_card_numbers = get_book_ids(page_number)
         urls_and_books_ids = get_books_urls_and_ids(book_card_numbers) 
