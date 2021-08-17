@@ -53,7 +53,7 @@ def download_image(book_page_information):
     url = 'https://tululu.org/{}'.format(filename)
     response = get_response(url)
     filename = filename.split("/")[2]
-    catalog_img = os.path.join('{}', '{}').format(folder, filename)#без format
+    catalog_img = os.path.join(folder, filename)
     os.makedirs(folder, exist_ok=True)
 
     with open(catalog_img, 'wb') as file:
@@ -151,7 +151,6 @@ if __name__ == '__main__':
     for urls_and_books_ids in urls_and_books_ids_all_pages:
 
         try:
-            print('1')
             parse_books(urls_and_books_ids[0])   
         except requests.HTTPError:
             logging.error('Такого страницы нет на сайте')
