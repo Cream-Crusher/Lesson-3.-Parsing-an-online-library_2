@@ -144,11 +144,12 @@ if __name__ == '__main__':
     urls_and_books_ids_all_pages = []
     start_page = args.start_page
     end_page = args.end_page
+
     for page_number in range(start_page, end_page):
         book_card_numbers = get_book_ids(page_number)
         urls_and_books_ids_all_pages.append(get_books_urls_and_ids(book_card_numbers, page_number))
 
-    for urls_and_books_ids in urls_and_books_ids_all_pages:#использовать зип тут zip(a,b)
+    for urls_and_books_ids in urls_and_books_ids_all_pages:
 
         try:
             parse_books(urls_and_books_ids[0])   
