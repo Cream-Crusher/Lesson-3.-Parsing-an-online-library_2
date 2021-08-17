@@ -40,7 +40,7 @@ def download_txt(response, book_page_information):
     sanitize_filename(folder), sanitize_filename(book_page_information['filename']))
     os.makedirs(folder, exist_ok=True)
     
-    with open(catalog_books, 'w', encoding='utf-8') as file:#catalog_books, 'a'
+    with open(catalog_books, 'a', encoding='utf-8') as file:
         file.write(response.text)
 
 
@@ -141,14 +141,14 @@ if __name__ == '__main__':
     args = get_args(number_pages)
     logging.basicConfig(level = logging.INFO)
     urllib3.disable_warnings()
-    urls_and_books_ids_all_pages = []#переменовать на более понятное
+    urls_and_books_ids_all_pages = []
     start_page = args.start_page
     end_page = args.end_page
-    for page_number in range(start_page, end_page):#использовать зип тут zip(a,b)
+    for page_number in range(start_page, end_page):
         book_card_numbers = get_book_ids(page_number)
         urls_and_books_ids_all_pages.append(get_books_urls_and_ids(book_card_numbers, page_number))
 
-    for urls_and_books_ids in urls_and_books_ids_all_pages:
+    for urls_and_books_ids in urls_and_books_ids_all_pages:#использовать зип тут zip(a,b)
 
         try:
             parse_books(urls_and_books_ids[0])   
