@@ -120,12 +120,12 @@ def get_books_urls_and_ids(book_card_numbers, page_number):
         url = urljoin('https://tululu.org', book_id)
         urls.append(url)
         books_ids.append(book_id)
-    return {
-        page_number: {
+    return [
+        {
             'urls': urls,
             'books_ids': books_ids
         }
-    }#переделать или подсушить названия
+    ]
 
 
 def get_number_of_pages():
@@ -141,16 +141,17 @@ if __name__ == '__main__':
     args = get_args(number_pages)
     logging.basicConfig(level = logging.INFO)
     urllib3.disable_warnings()
-    urls_and_books_ids_all_pages = {}#переменовать на более понятное
+    urls_and_books_ids_all_pages = []#переменовать на более понятное
     start_page = args.start_page
     end_page = args.end_page
     for page_number in range(start_page, end_page):#использовать зип тут zip(a,b)
         book_card_numbers = get_book_ids(page_number)
-        urls_and_books_ids_all_pages.update(get_books_urls_and_ids(book_card_numbers, page_number))
+        urls_and_books_ids_all_pages.append(get_books_urls_and_ids(book_card_numbers, page_number))
 
-    for num_page in urls_and_books_ids_all_pages:#сделать без num_page
+    for urls_and_books_ids in urls_and_books_ids_all_pages:
 
         try:
-            parse_books(urls_and_books_ids_all_pages[num_page])   
+            print('1')
+            parse_books(urls_and_books_ids[0])   
         except requests.HTTPError:
             logging.error('Такого страницы нет на сайте')
