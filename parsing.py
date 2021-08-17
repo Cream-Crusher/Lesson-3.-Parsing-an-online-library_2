@@ -40,7 +40,7 @@ def download_txt(response, book_page_information):
     sanitize_filename(folder), sanitize_filename(book_page_information['filename']))
     os.makedirs(folder, exist_ok=True)
     
-    with open(catalog_books, 'w', encoding='utf-8') as file:
+    with open(catalog_books, 'w', encoding='utf-8') as file:#catalog_books, 'a'
         file.write(response.text)
 
 
@@ -53,7 +53,7 @@ def download_image(book_page_information):
     url = 'https://tululu.org/{}'.format(filename)
     response = get_response(url)
     filename = filename.split("/")[2]
-    catalog_img = os.path.join('{}', '{}').format(folder, filename)
+    catalog_img = os.path.join('{}', '{}').format(folder, filename)#без format
     os.makedirs(folder, exist_ok=True)
 
     with open(catalog_img, 'wb') as file:
@@ -125,15 +125,15 @@ def get_books_urls_and_ids(book_card_numbers, page_number):
             'urls': urls,
             'books_ids': books_ids
         }
-    }
+    }#переделать или подсушить названия
 
 
 def get_number_of_pages():
     url = 'https://tululu.org/l55/1'
     response = get_response(url)
     soup = BeautifulSoup(response.text, "html.parser")
-    number_pages = soup.select('table.tabs p.center a.npage')[-1].text
-    return int (number_pages)
+    number_pages = soup.select_one('table.tabs p.center a:nth-child(7)').text
+    return number_pages
 
 
 if __name__ == '__main__':
@@ -141,17 +141,16 @@ if __name__ == '__main__':
     args = get_args(number_pages)
     logging.basicConfig(level = logging.INFO)
     urllib3.disable_warnings()
-    urls_and_books_ids_all_pages = {}
+    urls_and_books_ids_all_pages = {}#переменовать на более понятное
     start_page = args.start_page
     end_page = args.end_page
-    for page_number in range(start_page, end_page):
+    for page_number in range(start_page, end_page):#использовать зип тут zip(a,b)
         book_card_numbers = get_book_ids(page_number)
         urls_and_books_ids_all_pages.update(get_books_urls_and_ids(book_card_numbers, page_number))
 
-    for num_page in urls_and_books_ids_all_pages:
+    for num_page in urls_and_books_ids_all_pages:#сделать без num_page
 
         try:
             parse_books(urls_and_books_ids_all_pages[num_page])   
         except requests.HTTPError:
             logging.error('Такого страницы нет на сайте')
-
