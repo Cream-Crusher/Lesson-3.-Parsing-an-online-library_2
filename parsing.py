@@ -82,11 +82,11 @@ def get_book_ids(id):
     return book_card_numbers
 
 
-def parse_books(urls_and_books_ids):
+def parse_books(urls_and_books_ids_one_page):
     json_path = os.path.join(args.json_path, 'book_page_information.json')
     json_information = []
 
-    for url, book_id in zip(urls_and_books_ids['urls'], urls_and_books_ids['books_ids']):
+    for url, book_id in zip(urls_and_books_ids_one_page['urls'], urls_and_books_ids_one_page['books_ids']):
         response = get_response(url)
         soup = BeautifulSoup(response.text, "html.parser")
         filename = soup.select_one('table.tabs td.ow_px_td h1').text
@@ -149,9 +149,9 @@ if __name__ == '__main__':
         book_card_numbers = get_book_ids(page_number)
         urls_and_books_ids_all_pages.append(get_books_urls_and_ids(book_card_numbers, page_number))
 
-    for urls_and_books_ids in urls_and_books_ids_all_pages:
+    for urls_and_books_ids_one_page in urls_and_books_ids_all_pages:
 
         try:
-            parse_books(urls_and_books_ids[0])   
+            parse_books(urls_and_books_ids_one_page[0])   
         except requests.HTTPError:
             logging.error('Такого страницы нет на сайте')
