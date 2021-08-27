@@ -56,7 +56,7 @@ def download_image(book_page_information):
     catalog_img = os.path.join(folder, filename)
     os.makedirs(folder, exist_ok=True)
 
-    with open(catalog_img, 'wb') as file:
+    with open(catalog_img, 'ab') as file:
         file.write(response.content)
 
 
