@@ -56,7 +56,7 @@ def download_image(book_page_information):
     catalog_img = os.path.join(folder, filename)
     os.makedirs(folder, exist_ok=True)
 
-    with open(catalog_img, 'ab') as file:
+    with open(catalog_img, 'wb') as file:
         file.write(response.content)
 
 
@@ -82,9 +82,8 @@ def get_book_ids(id):
     return book_card_numbers
 
 
-def parse_books(urls_and_books_ids_one_page):
+def parse_books(urls_and_books_ids_one_page, json_information):
     json_path = os.path.join(args.json_path, 'book_page_information.json')
-    json_information = []
 
     for url, book_id in zip(urls_and_books_ids_one_page['urls'], urls_and_books_ids_one_page['books_ids']):
         response = get_response(url)
@@ -99,16 +98,16 @@ def parse_books(urls_and_books_ids_one_page):
             'genres': [genre]
         }
         json_information.append(book_page_information)
-        response = get_book_link(book_id)  
+        response = get_book_link(book_id) 
 
+        with open(json_path, "w", encoding="utf-8") as my_file:
+            json.dump(json_information, my_file, ensure_ascii=False)
+        
         if not args.skip_txt:
             download_txt(response, book_page_information)
 
         if not args.skip_imgs:
-            download_image(book_page_information)
-
-    with open(json_path, "w") as my_file:
-        json.dump(json_information, my_file)      
+            download_image(book_page_information)     
 
 
 def get_books_urls_and_ids(book_card_numbers, page_number):
@@ -135,13 +134,13 @@ def get_number_of_pages():
     number_pages = soup.select_one('table.tabs p.center a:nth-child(7)').text
     return number_pages
 
-
 if __name__ == '__main__':
     number_pages = get_number_of_pages()
     args = get_args(number_pages)
     logging.basicConfig(level = logging.INFO)
     urllib3.disable_warnings()
     urls_and_books_ids_all_pages = []
+    json_information = []
     start_page = args.start_page
     end_page = args.end_page
 
@@ -152,6 +151,7 @@ if __name__ == '__main__':
     for urls_and_books_ids_one_page in urls_and_books_ids_all_pages:
 
         try:
-            parse_books(urls_and_books_ids_one_page[0])   
+            parse_books(urls_and_books_ids_one_page[0], json_information)
+
         except requests.HTTPError:
             logging.error('Такого страницы нет на сайте')
