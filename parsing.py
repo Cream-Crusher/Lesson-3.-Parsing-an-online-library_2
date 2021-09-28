@@ -82,35 +82,30 @@ def get_book_ids(id):
     return book_card_numbers
 
 
-def parse_books(urls_and_books_ids_one_page, json_information):
-    json_path = os.path.join(args.json_path, 'book_page_information.json')
+def parse_books(url, book_id):
+    response = get_response(url)
+    soup = BeautifulSoup(response.text, "html.parser")
+    filename = soup.select_one('table.tabs td.ow_px_td h1').text
+    image_name = soup.select_one('table.tabs td.ow_px_td table img')['src']
+    genre = soup.select_one('table.tabs span.d_book a').text
+    book_page_information = {
+        'filename': filename.split('::')[0],
+        'author': filename.split('::')[1],
+        'image_name': image_name,
+        'genres': [genre]
+    }
+    response = get_book_link(book_id)
 
-    for url, book_id in zip(urls_and_books_ids_one_page['urls'], urls_and_books_ids_one_page['books_ids']):
-        response = get_response(url)
-        soup = BeautifulSoup(response.text, "html.parser")
-        filename = soup.select_one('table.tabs td.ow_px_td h1').text
-        image_name = soup.select_one('table.tabs td.ow_px_td table img')['src']
-        genre = soup.select_one('table.tabs span.d_book a').text
-        book_page_information = {
-            'filename': filename.split('::')[0],
-            'author': filename.split('::')[1],
-            'image_name': image_name,
-            'genres': [genre]
-        }
-        json_information.append(book_page_information)
-        response = get_book_link(book_id) 
-
-        with open(json_path, "w", encoding="utf-8") as my_file:
-            json.dump(json_information, my_file, ensure_ascii=False)
+    if not args.skip_txt:
+        download_txt(response, book_page_information)
         
-        if not args.skip_txt:
-            download_txt(response, book_page_information)
+    if not args.skip_imgs:
+        download_image(book_page_information)     
 
-        if not args.skip_imgs:
-            download_image(book_page_information)     
+    return book_page_information
 
 
-def get_books_urls_and_ids(book_card_numbers, page_number):
+def get_books_urls_and_ids(book_card_numbers):
     urls = []
     books_ids = []
 
@@ -123,7 +118,7 @@ def get_books_urls_and_ids(book_card_numbers, page_number):
         {
             'urls': urls,
             'books_ids': books_ids
-        }
+        },
     ]
 
 
@@ -141,17 +136,24 @@ if __name__ == '__main__':
     urllib3.disable_warnings()
     urls_and_books_ids_all_pages = []
     json_information = []
+    json_path = os.path.join(args.json_path, 'book_page_information.json')
     start_page = args.start_page
     end_page = args.end_page
 
     for page_number in range(start_page, end_page):
         book_card_numbers = get_book_ids(page_number)
-        urls_and_books_ids_all_pages.append(get_books_urls_and_ids(book_card_numbers, page_number))
+        urls_and_books_ids_all_pages.append(get_books_urls_and_ids(book_card_numbers))
 
     for urls_and_books_ids_one_page in urls_and_books_ids_all_pages:
 
-        try:
-            parse_books(urls_and_books_ids_one_page[0], json_information)
+        for url, book_id in zip(urls_and_books_ids_one_page[0]['urls'], urls_and_books_ids_one_page[0]['books_ids']):
 
-        except requests.HTTPError:
-            logging.error('Такого страницы нет на сайте')
+            try:
+                book_info = parse_books(url, book_id)
+                json_information.append(book_info)
+
+            except requests.HTTPError:
+                logging.error('Такой страницы нет на сайте')
+
+    with open(json_path, "w", encoding="utf-8") as my_file:
+        json.dump(json_information, my_file, ensure_ascii=False)
