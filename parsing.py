@@ -114,12 +114,10 @@ def get_books_urls_and_ids(book_card_numbers):
         url = urljoin('https://tululu.org', book_id)
         urls.append(url)
         books_ids.append(book_id)
-    return [
-        {
-            'urls': urls,
-            'books_ids': books_ids
-        },
-    ]
+    return  {
+                'urls': urls,
+                'books_ids': books_ids
+            }
 
 
 def get_number_of_pages():
@@ -140,11 +138,12 @@ if __name__ == '__main__':
 
     for page_number in range(args.start_page, args.end_page):
         book_card_numbers = get_book_ids(page_number)
-        urls_and_books_ids_all_pages.append(get_books_urls_and_ids(book_card_numbers))
+        url_and_book_id_all_page = get_books_urls_and_ids(book_card_numbers)
+        urls_and_books_ids_all_pages.append(url_and_book_id_all_page)
 
     for urls_and_books_ids_one_page in urls_and_books_ids_all_pages:
 
-        for url, book_id in zip(urls_and_books_ids_one_page[0]['urls'], urls_and_books_ids_one_page[0]['books_ids']):
+        for url, book_id in zip(urls_and_books_ids_one_page['urls'], urls_and_books_ids_one_page['books_ids']):
 
             try:
                 book_info = parse_books(url, book_id)
