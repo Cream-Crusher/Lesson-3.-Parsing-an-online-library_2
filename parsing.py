@@ -50,9 +50,8 @@ def download_image(book_page_information):
         logging.info(os.path.join('{}', '{}').format(os.path.realpath(os.curdir), folder))
 
     filename = book_page_information['image_name']
-    url = 'https://tululu.org/{}'.format(filename)
+    url = 'https://tululu.org/shots/{}'.format(filename)
     response = get_response(url)
-    filename = filename.split("/")[2]
     catalog_img = os.path.join(folder, filename)
     os.makedirs(folder, exist_ok=True)
 
@@ -89,13 +88,12 @@ def parse_books(url, book_id):
     image_name = soup.select_one('table.tabs td.ow_px_td table img')['src']
     genre = soup.select_one('table.tabs span.d_book a').text
     book_page_information = {
-        'filename': filename.split('::')[0],
-        'author': filename.split('::')[1],
-        'image_name': image_name,
+        'filename': filename.split('::')[0].strip(),
+        'author': filename.split('::')[1].strip(),
+        'image_name': image_name.split('/')[-1],
         'genres': [genre]
     }
     response = get_book_link(book_id)
-
     if not args.skip_txt:
         download_txt(response, book_page_information)
         
